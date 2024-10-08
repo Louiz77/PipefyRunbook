@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            display: flex;
+        }
+        #sidebar {
+            width: 250px;
+            background-color: #343a40;
+            color: white;
+            position: fixed;
+            top: 0;
+            bottom: 0;
+        }
+        #sidebar .nav-link {
+            color: white;
+            font-weight: 700;
+            border
+        }
+        #sidebar .nav-link:hover {
+            color: black;
+        }
+        .container-fluid {
+            margin-left: 250px;
+        }
+        .form-control {
+            border-radius: 10px;
+        }
+        .btn-custom {
+            background-color: #022240;
+            color: white;
+            font-weight: 700;
+            border: 1px solid transparent;
+            border-radius: 20px;
+            padding: 10px 20px;
+        }
+        .btn-custom:hover {
+            background-color: white;
+            border: 1px solid #0f75bc;
+            color: #0f75bc;
+        }
+        h1 {
+            font-size: 2.5rem;
+            color: #007bff;
+            font-weight: bold;
+            text-align: center;
+        }
+        .card {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            transition: transform 0.2s ease-in-out;
+            cursor: pointer;
+            margin-top: 2%;
+        }
+        .card:hover {
+            transform: scale(1.05);
+        }
+        .card img {
+            border-radius: 10px;
+            width: 100%;
+        }
+        .row {
+            margin-top: 40px;
+        }
+        .stretched-link::after {
+            pointer-events: auto;
+            content: "";
+            background-color: rgba(0,0,0,0);
+        }
+    </style>
+</head>
+<body>
+    <!-- side mn -->
+    <div id="sidebar">
+        <div class="p-4">
+            <h4>ITFacil Dashboard</h4>
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Início</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Relatórios Automatizados</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="http://grafana/">Server Status</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="container-fluid">
+        <h1 class="my-5">Runbook - Relatório</h1>
+        <!-- form -->
+        <div class="">
+            <form method="POST" action="{{ url_for('relatorios.gerar_relatorio') }}" enctype="multipart/form-data" class="mt-4 text-center">
+                <div class="row justify-content-center">
+                    <div class="col-md-4 mb-3">
+                        <label for="pipefy_image" class="form-label">Selecione a imagem para Gestão de Serviços (Pipefy)</label>
+                        <input type="file" class="form-control" id="pipefy_image" name="pipefy_image" accept="image/*" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="grafana_image" class="form-label">Selecione a imagem para Resumo de Recursos Computacionais (Grafana)</label>
+                        <input type="file" class="form-control" id="grafana_image" name="grafana_image" accept="image/*" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="totvs_image" class="form-label">Selecione a imagem para Chamados Referentes a TOTVS</label>
+                        <input type="file" class="form-control" id="totvs_image" name="totvs_image" accept="image/*" required>
+                    </div>
+                    <div class="justify-content-center">
+                        <label for="autorResponsavel" class="form-label">Autor responsável</label>
+                        <input type="text" class="form-control" id="autorResponsavel" name="autorResponsavel" required>
+                    </div>
+                    <div class="justify-content-center">
+                        <label for="numberVersion" class="form-label">Número de versão do documento</label>
+                        <input type="number" class="form-control" id="numberVersion" name="numberVersion" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="start_date" class="form-label">Data de Início</label>
+                        <input type="date" class="form-control" id="start_date" name="start_date" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="end_date" class="form-label">Data Final</label>
+                        <input type="date" class="form-control" id="end_date" name="end_date" required>
+                    </div>
+                </div>
+                <div class="d-grid gap-2 col-6 mx-auto">
+                    <button type="submit" class="btn btn-custom">Gerar Relatório</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- img cards -->
+        <div class="row text-center">
+            <div class="col-md-3">
+                <div class="card">
+                    <img src="{{ url_for('static', filename='3324618.jpg') }}">
+                    <div class="card-body">
+                        <p class="card-text">Relatórios Automatizados</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <img src="{{ url_for('static', filename='2794209.jpg') }}">
+                    <div class="card-body">
+                        <a href="http://grafana/" class="stretched-link"></a>
+                        <p class="card-text">Server Status</p>
+
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <img src="https://via.placeholder.com/700x700" alt="pag">
+                    <div class="card-body">
+                        <p class="card-text">Desativado</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <img src="{{ url_for('static', filename='19199196.jpg') }}">
+                    <div class="card-body">
+                        <a href="https://app.pipefy.com/pipes/304582953" class="stretched-link"></a>
+                        <p class="card-text">Pipefy</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if success %}
+        <div class="alert alert-success mt-4" role="alert">
+            Relatório gerado com sucesso! O download começará em breve.
+        </div>
+        {% endif %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
