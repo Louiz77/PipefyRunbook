@@ -3,6 +3,7 @@ from app.views.status import all_cards
 from flask import current_app
 from collections import defaultdict
 from datetime import datetime, timedelta
+import json
 
 def get_all_cards():
     headers = {
@@ -14,62 +15,79 @@ def get_all_cards():
     all_pipes_data = []  # Lista para acumular os dados de todos os pipes
 
     for pipe_id in pipe_ids:
-        query = f"""
-        {{
-          pipe(id: {pipe_id}) {{
-            id
-            name
-            phases {{
-              name
-              cards {{
-                edges {{
-                  node {{
-                    id
-                    title
-                    created_at
-                    due_date
-                    assignees {{
-                      name
+        has_more = True
+        after = None
+
+        while has_more:
+            after_value = json.dumps(after) if after else "null"
+            query = f"""
+            {{
+              pipe(id: {pipe_id}) {{
+                id
+                name
+                phases {{
+                  name
+                  cards(first: 50, after: {after_value}) {{
+                    pageInfo {{
+                      hasNextPage
+                      endCursor
                     }}
-                    phases_history {{
-                      phase {{
-                        name
+                    edges {{
+                      node {{
+                        id
+                        title
+                        created_at
+                        due_date
+                        assignees {{
+                          name
+                        }}
+                        phases_history {{
+                          phase {{
+                            name
+                          }}
+                          duration
+                        }}
+                        fields {{
+                          name
+                          value
+                        }}
+                        current_phase {{
+                          name
+                        }}
                       }}
-                      duration
-                    }}
-                    fields {{
-                      name
-                      value
-                    }}
-                    current_phase {{
-                      name
                     }}
                   }}
                 }}
               }}
             }}
-          }}
-        }}
-        """
+            """
 
-        response = requests.post(
-            "https://api.pipefy.com/graphql",
-            json={'query': query},
-            headers=headers
-        )
+            response = requests.post(
+                "https://api.pipefy.com/graphql",
+                json={'query': query},
+                headers=headers
+            )
 
-        if response.status_code != 200:
-            return {"error": f"Request failed with status code {response.status_code}"}
+            if response.status_code != 200:
+                return {"error": f"Request failed with status code {response.status_code}"}
 
-        try:
-            response_data = response.json()
-            if 'errors' in response_data:
-                return {"error": response_data['errors']}
+            try:
+                print(response.json())
+                response_data = response.json()
+                if 'errors' in response_data:
+                    return {"error": response_data['errors']}
 
-            all_pipes_data.append(response_data["data"]["pipe"])
+                pipe_data = response_data["data"]["pipe"]
+                phases = pipe_data.get("phases", [])
+                for phase in phases:
+                    all_cards.extend([edge["node"] for edge in phase["cards"]["edges"]])
 
-        except ValueError:
-            return {"error": "JSON response erro"}
+                page_info = phases[0]["cards"]["pageInfo"]
+                has_more = page_info["hasNextPage"]
+                after = page_info["endCursor"]
+
+            except ValueError:
+                return {"error": "Erro ao processar resposta JSON"}
 
     return all_pipes_data
 
@@ -228,24 +246,6 @@ def processar_dados_pipe(pipes_data, start_date, end_date):
 
     start_date = start_date.date() if isinstance(start_date, datetime) else start_date
     end_date = end_date.date() if isinstance(end_date, datetime) else end_date
-
-    for pipe in pipes_data:
-        phases = pipe.get('phases', [])
-        for phase in phases:
-            cards = phase.get('cards', {}).get('edges', [])
-            print(cards)
-            for card_edge in cards:
-                card = card_edge.get('node', {})
-                phases_history = card.get('phases_history', [])
-                total_duration = sum(phase['duration'] for phase in phases_history)
-                card_conclusion_date = (datetime.strptime(card['created_at'], "%Y-%m-%dT%H:%M:%SZ") + timedelta(
-                    seconds=total_duration)).date()
-
-                if card.get('current_phase', {}).get(
-                        'name') == 'Concluído' and start_date <= card_conclusion_date <= end_date:
-                    total_chamados_concluidos += 1
-                    chamados_concluidos_por_data[card_conclusion_date] += 1
-
 
     for pipe_data in pipes_data:
         if not isinstance(pipe_data, dict) or 'phases' not in pipe_data:
