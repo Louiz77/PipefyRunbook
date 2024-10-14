@@ -98,19 +98,43 @@
         <h1 class="my-5">Runbook - Relatório</h1>
         <!-- form -->
         <div class="">
-            <form method="POST" action="{{ url_for('relatorios.gerar_relatorio') }}" enctype="multipart/form-data" class="mt-4 text-center">
+            <form method="POST" action="{{ url_for('relatorios.gerar_relatorio') }}" enctype="multipart/form-data" class="mt-4 text-center" id="form-relatorio">
                 <div class="row justify-content-center">
+                    <div class="col-md-4 mb-3">
+                        <label for="custom_link1" class="form-label">Link do Checklist diario</label>
+                        <input type="text" value="https://ecom742.sharepoint.com/sites/WorkPlace-IT/Documentos%20Compartilhados/General/TI.INVENTÁRIO/RUNBOOK" class="form-control" id="custom_link1" name="custom_link1" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="custom_link2" class="form-label">Link do controle de aplicativos e sistemas instalados</label>
+                        <input type="text" value="../Ecom%20Energia/WorkSPace%20-%20IT%20-%20General/TI.INVENTÁRIO/RUNBOOK" class="form-control" id="custom_link2" name="custom_link2" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="custom_link3" class="form-label">Link do inventario de maquina - GLPI</label>
+                        <input type="text" value="../Ecom%20Energia/WorkSPace%20-%20IT%20-%20General/TI.INVENTÁRIO/RUNBOOK" class="form-control" id="custom_link3" name="custom_link3" required>
+                    </div>
                     <div class="col-md-4 mb-3">
                         <label for="pipefy_image" class="form-label">Selecione a imagem para Gestão de Serviços (Pipefy)</label>
                         <input type="file" class="form-control" id="pipefy_image" name="pipefy_image" accept="image/*" required>
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label for="grafana_image" class="form-label">Selecione a imagem para Resumo de Recursos Computacionais (Grafana)</label>
-                        <input type="file" class="form-control" id="grafana_image" name="grafana_image" accept="image/*" required>
+                        <label for="grafana_image_1" class="form-label">Selecione a imagem 1 (Grafana)</label>
+                        <input type="file" class="form-control" id="grafana_image_1" name="grafana_image_1" accept="image/*" required>
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label for="totvs_image" class="form-label">Selecione a imagem para Chamados Referentes a TOTVS</label>
-                        <input type="file" class="form-control" id="totvs_image" name="totvs_image" accept="image/*" required>
+                        <label for="grafana_image_2" class="form-label">Selecione a imagem 2 (Grafana)</label>
+                        <input type="file" class="form-control" id="grafana_image_2" name="grafana_image_2" accept="image/*" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="grafana_image_3" class="form-label">Selecione a imagem 3 (Grafana)</label>
+                        <input type="file" class="form-control" id="grafana_image_3" name="grafana_image_3" accept="image/*" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="grafana_image_4" class="form-label">Selecione a imagem 4 (Grafana)</label>
+                        <input type="file" class="form-control" id="grafana_image_4" name="grafana_image_4" accept="image/*" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="grafana_image_5" class="form-label">Selecione a imagem 5 (Grafana)</label>
+                        <input type="file" class="form-control" id="grafana_image_5" name="grafana_image_5" accept="image/*" required>
                     </div>
                     <div class="justify-content-center">
                         <label for="autorResponsavel" class="form-label">Autor responsável</label>
@@ -130,9 +154,34 @@
                     </div>
                 </div>
                 <div class="d-grid gap-2 col-6 mx-auto">
-                    <button type="submit" class="btn btn-custom">Gerar Relatório</button>
+                    <button type="submit" class="btn btn-custom" id="generate-btn">Gerar Relatório</button>
                 </div>
             </form>
+        </div>
+
+        <div class="modal fade" id="loadingModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="loadingModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-body text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="sr-only">Gerando relatório...</span>
+                        </div>
+                        <p>Por favor, aguarde. O relatório está sendo gerado.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-body text-center">
+                        <h5 class="modal-title" id="successModalLabel">Relatório Gerado!</h5>
+                        <p>O relatório foi gerado com sucesso e o download será iniciado em breve.</p>
+                        <button type="button" class="btn btn-success" data-bs-dismiss="modal">Fechar</button>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- img cards -->
@@ -182,5 +231,47 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+    $(document).ready(function() {
+        $('#form-relatorio').submit(function(event) {
+            event.preventDefault();
+
+            $('#loadingModal').modal('show');
+
+            var formData = new FormData(this);
+
+            fetch('{{ url_for("relatorios.gerar_relatorio") }}', {
+                method: 'POST',
+                body: formData
+            }).then(response => {
+                if (response.ok) {
+                    response.blob().then(blob => {
+                        // Inicia o download do arquivo
+                        var url = window.URL.createObjectURL(blob);
+                        var a = document.createElement('a');
+                        a.href = url;
+                        a.download = 'relatorio_runbook.docx';
+                        document.body.appendChild(a);
+                        a.click();
+                        a.remove();
+
+                        $('#loadingModal').modal('hide');
+                        $('#successModal').modal('show');
+                    });
+                } else {
+                    $('#loadingModal').modal('hide');
+                    alert('Erro ao gerar relatório');
+                }
+            }).catch(error => {
+                console.error('Erro:', error);
+                $('#loadingModal').modal('hide');
+                alert('Erro ao gerar relatório');
+            });
+        });
+    });
+    </script>
 </body>
 </html>
