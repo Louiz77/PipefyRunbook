@@ -71,4 +71,9 @@ def test_gerar_relatorio(mock_filtrar_top_solicitacoes, mock_filter_chamados, mo
 
     # Verificando o status da resposta
     assert response.status_code == 200
-    assert b'relatorio_runbook.docx' in response.data
+
+    # Verificando se o cabeçalho 'Content-Disposition' contém o nome do arquivo correto
+    assert 'relatorio_runbook.docx' in response.headers['Content-Disposition']
+
+    # Verificando o tipo de conteúdo para garantir que seja um arquivo Word
+    assert response.headers['Content-Type'] == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
