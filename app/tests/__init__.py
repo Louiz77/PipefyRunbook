@@ -1,6 +1,6 @@
 from flask import Flask
-from .views.relatorios import bp as relatorios_bp
-from .services import pipefy_service, grafana_service, prometheus_service
+from app.views.relatorios import bp as relatorios_bp
+from app.services import pipefy_service, grafana_service, prometheus_service
 import os
 
 def create_app(test_config=None):
