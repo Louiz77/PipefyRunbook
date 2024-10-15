@@ -16,7 +16,7 @@ def client():
 @patch('app.services.pipefy_service.filter_chamados')
 @patch('app.services.pipefy_service.filtrar_top_solicitacoes')
 def test_gerar_relatorio(mock_filtrar_top_solicitacoes, mock_filter_chamados, mock_download_and_process_report,
-                          mock_wait_for_report, mock_export_report, mock_get_all_cards, client):
+                         mock_wait_for_report, mock_export_report, mock_get_all_cards, client):
     # Simula o retorno da função get_all_cards
     mock_get_all_cards.return_value = [
         {
@@ -37,10 +37,10 @@ def test_gerar_relatorio(mock_filtrar_top_solicitacoes, mock_filter_chamados, mo
     # Simula o retorno da função wait_for_report
     mock_wait_for_report.return_value = {'status': 'completed'}
 
-    # Simula o retorno da função download_and_process_report com a chave correta, convertendo as strings para datetime
+    # Simula o retorno da função download_and_process_report com a chave 'Created at' como objeto datetime
     mock_download_and_process_report.return_value = [
-        {'Created at': '2024-10-01T12:00:00Z', 'Finished at': '2024-10-05T12:00:00Z', 'title': 'Chamado 1'},
-        {'Created at': '2024-10-02T12:00:00Z', 'Finished at': '2024-10-06T12:00:00Z', 'title': 'Chamado 2'}
+        {'Created at': datetime(2024, 10, 1, 12, 0, 0), 'Finished at': datetime(2024, 10, 5, 12, 0, 0), 'title': 'Chamado 1'},
+        {'Created at': datetime(2024, 10, 2, 12, 0, 0), 'Finished at': datetime(2024, 10, 6, 12, 0, 0), 'title': 'Chamado 2'}
     ]
 
     # Simula o retorno da função filter_chamados
