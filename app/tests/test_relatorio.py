@@ -36,10 +36,10 @@ def test_gerar_relatorio(mock_filtrar_top_solicitacoes, mock_filter_chamados, mo
     # Simula o retorno da função wait_for_report
     mock_wait_for_report.return_value = {'status': 'completed'}
 
-    # Simula o retorno da função download_and_process_report
+    # Simula o retorno da função download_and_process_report com a chave correta
     mock_download_and_process_report.return_value = [
-        {'created_at': '2024-10-01T12:00:00Z', 'title': 'Chamado 1'},
-        {'created_at': '2024-10-02T12:00:00Z', 'title': 'Chamado 2'}
+        {'Created at': '2024-10-01T12:00:00Z', 'title': 'Chamado 1'},
+        {'Created at': '2024-10-02T12:00:00Z', 'title': 'Chamado 2'}
     ]
 
     # Simula o retorno da função filter_chamados
@@ -70,4 +70,4 @@ def test_gerar_relatorio(mock_filtrar_top_solicitacoes, mock_filter_chamados, mo
 
     # Verificando o status da resposta
     assert response.status_code == 200
-    assert b'relatorio_runbook.docx' in response.data  # Verifica se o nome do arquivo está no conteúdo da resposta
+    assert b'relatorio_runbook.docx' in response.data
