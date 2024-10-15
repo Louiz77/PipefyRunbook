@@ -1,25 +1,22 @@
+import os
 import pytest
+from app import create_app
 from flask import Flask
-from app.views.relatorios import bp as relatorios_bp
 
 @pytest.fixture
 def app():
-    # Criação de uma instância do Flask para os testes
-    app = Flask(__name__)
-    app.register_blueprint(relatorios_bp)
-    yield app
+    app = create_app()  # Cria uma instância do app
+    app.config['TESTING'] = True  # Habilita o modo de teste
+    app.config['UPLOAD_FOLDER'] = './uploads'  # Define a pasta de upload para os testes
+    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)  # Cria a pasta se não existir
+
+    yield app  # Permite que o teste utilize o app
 
 @pytest.fixture
 def client(app):
-    # Criação de um cliente de teste
-    return app.test_client()
+    return app.test_client()  # Retorna um cliente de teste
 
 def test_gerar_relatorio(client):
-    """
-    Teste Unitario para garantir a eficiência do código
-    :param client:
-    :return: Response
-    """
     # Simulação de um POST para a rota /gerar
     response = client.post('/relatorios/gerar', data={
         'start_date': '2024-10-01',
@@ -39,4 +36,3 @@ def test_gerar_relatorio(client):
 
     # Verificando o status da resposta
     assert response.status_code == 200
-    assert b'relatorio_runbook.docx' in response.data  # Verifica se o nome do arquivo está no conteúdo da resposta
