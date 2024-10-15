@@ -1,6 +1,7 @@
 import pytest
 from unittest.mock import patch
 from app import create_app
+from datetime import datetime
 
 @pytest.fixture
 def client():
@@ -36,10 +37,10 @@ def test_gerar_relatorio(mock_filtrar_top_solicitacoes, mock_filter_chamados, mo
     # Simula o retorno da função wait_for_report
     mock_wait_for_report.return_value = {'status': 'completed'}
 
-    # Simula o retorno da função download_and_process_report com a chave correta
+    # Simula o retorno da função download_and_process_report com a chave correta, convertendo as strings para datetime
     mock_download_and_process_report.return_value = [
-        {'Created at': '2024-10-01T12:00:00Z', 'title': 'Chamado 1'},
-        {'Created at': '2024-10-02T12:00:00Z', 'title': 'Chamado 2'}
+        {'Created at': datetime.strptime('2024-10-01T12:00:00Z', '%Y-%m-%dT%H:%M:%SZ'), 'title': 'Chamado 1'},
+        {'Created at': datetime.strptime('2024-10-02T12:00:00Z', '%Y-%m-%dT%H:%M:%SZ'), 'title': 'Chamado 2'}
     ]
 
     # Simula o retorno da função filter_chamados
