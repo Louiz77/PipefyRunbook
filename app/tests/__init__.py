@@ -4,7 +4,6 @@ from app.services import pipefy_service, grafana_service, prometheus_service
 import os
 
 def create_app(test_config=None):
-    # Cria o app Flask
     app = Flask(__name__, instance_relative_config=True)
 
     # Carrega a configuração padrão
