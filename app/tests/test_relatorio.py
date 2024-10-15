@@ -39,4 +39,4 @@ def test_gerar_relatorio(client):
 
     # Verificando o status da resposta
     assert response.status_code == 200
-    assert b'relatório_runbook.docx' in response.data  # Verifica se o nome do arquivo está no conteúdo da resposta
+    assert b'relatorio_runbook.docx' in response.data  # Verifica se o nome do arquivo está no conteúdo da resposta
