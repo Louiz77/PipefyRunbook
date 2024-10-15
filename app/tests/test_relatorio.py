@@ -1,26 +1,21 @@
-import os
 import pytest
-from flask import Flask
-from app import create_app
 from unittest.mock import patch
-
-
-@pytest.fixture
-def app():
-    app = create_app()
-    app.config['TESTING'] = True
-    app.config['UPLOAD_FOLDER'] = './uploads'
-    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-    return app
-
+from app import create_app
 
 @pytest.fixture
-def client(app):
-    return app.test_client()
+def client():
+    app = create_app({'TESTING': True})  # Passa a configuração de teste
+    with app.test_client() as client:
+        yield client
 
-
-@patch('app.services.pipefy_service.get_all_cards')  # Mocking the function
-def test_gerar_relatorio(mock_get_all_cards, client):
+@patch('app.services.pipefy_service.get_all_cards')
+@patch('app.services.pipefy_service.export_report')
+@patch('app.services.pipefy_service.wait_for_report')
+@patch('app.services.pipefy_service.download_and_process_report')
+@patch('app.services.pipefy_service.filter_chamados')
+@patch('app.services.pipefy_service.filtrar_top_solicitacoes')
+def test_gerar_relatorio(mock_filtrar_top_solicitacoes, mock_filter_chamados, mock_download_and_process_report,
+                          mock_wait_for_report, mock_export_report, mock_get_all_cards, client):
     # Simula o retorno da função get_all_cards
     mock_get_all_cards.return_value = [
         {
@@ -33,6 +28,27 @@ def test_gerar_relatorio(mock_get_all_cards, client):
             'title': 'Chamado 2',
             'current_phase': {'name': 'Em Andamento'}
         }
+    ]
+
+    # Simula o retorno da função export_report
+    mock_export_report.return_value = {'id': 'mock_export_id'}
+
+    # Simula o retorno da função wait_for_report
+    mock_wait_for_report.return_value = {'status': 'completed'}
+
+    # Simula o retorno da função download_and_process_report
+    mock_download_and_process_report.return_value = [
+        {'created_at': '2024-10-01T12:00:00Z', 'title': 'Chamado 1'},
+        {'created_at': '2024-10-02T12:00:00Z', 'title': 'Chamado 2'}
+    ]
+
+    # Simula o retorno da função filter_chamados
+    mock_filter_chamados.return_value = (1, 1)  # Total de chamados abertos e concluídos
+
+    # Simula o retorno da função filtrar_top_solicitacoes
+    mock_filtrar_top_solicitacoes.return_value = [
+        {'type': 'Incidente', 'count': 1},
+        {'type': 'Solicitação de Serviço', 'count': 1}
     ]
 
     # Simulação de um POST para a rota /gerar
@@ -54,3 +70,4 @@ def test_gerar_relatorio(mock_get_all_cards, client):
 
     # Verificando o status da resposta
     assert response.status_code == 200
+    assert b'relatorio_runbook.docx' in response.data  # Verifica se o nome do arquivo está no conteúdo da resposta
