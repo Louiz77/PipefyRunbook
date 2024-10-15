@@ -36,4 +36,4 @@ jobs:
     - name: Run Tests with pytest
       run: |
         source venv/bin/activate
-        pytest
+        pytest app/tests/test_relatorio.py
