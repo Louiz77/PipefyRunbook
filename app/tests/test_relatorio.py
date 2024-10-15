@@ -26,12 +26,12 @@ def test_gerar_relatorio(mock_get_all_cards, client):
         {
             'created_at': '2024-10-01T12:00:00Z',
             'title': 'Chamado 1',
-            'current_phase': 'Concluído'
+            'current_phase': {'name': 'Concluído'}
         },
         {
             'created_at': '2024-10-02T12:00:00Z',
             'title': 'Chamado 2',
-            'current_phase': 'Em Andamento'
+            'current_phase': {'name': 'Em Andamento'}
         }
     ]
 
