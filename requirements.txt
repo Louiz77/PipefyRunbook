@@ -1,4 +1,6 @@
 pytest
+python-dotenv
+openpyxl
 blinker==1.8.2
 certifi==2024.8.30
 charset-normalizer==3.3.2
