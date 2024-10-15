@@ -1,22 +1,40 @@
 import os
 import pytest
-from app import create_app
 from flask import Flask
+from app import create_app
+from unittest.mock import patch
+
 
 @pytest.fixture
 def app():
-    app = create_app()  # Cria uma instância do app
-    app.config['TESTING'] = True  # Habilita o modo de teste
-    app.config['UPLOAD_FOLDER'] = './uploads'  # Define a pasta de upload para os testes
-    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)  # Cria a pasta se não existir
+    app = create_app()
+    app.config['TESTING'] = True
+    app.config['UPLOAD_FOLDER'] = './uploads'
+    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+    return app
 
-    yield app  # Permite que o teste utilize o app
 
 @pytest.fixture
 def client(app):
-    return app.test_client()  # Retorna um cliente de teste
+    return app.test_client()
 
-def test_gerar_relatorio(client):
+
+@patch('app.services.pipefy_service.get_all_cards')  # Mocking the function
+def test_gerar_relatorio(mock_get_all_cards, client):
+    # Simula o retorno da função get_all_cards
+    mock_get_all_cards.return_value = [
+        {
+            'created_at': '2024-10-01T12:00:00Z',
+            'title': 'Chamado 1',
+            'current_phase': 'Concluído'
+        },
+        {
+            'created_at': '2024-10-02T12:00:00Z',
+            'title': 'Chamado 2',
+            'current_phase': 'Em Andamento'
+        }
+    ]
+
     # Simulação de um POST para a rota /gerar
     response = client.post('/relatorios/gerar', data={
         'start_date': '2024-10-01',
