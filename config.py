@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
 
+# Carregamento das variaveis (que requer segurança no arquivo .env localizado na pasta da aplicação)
 load_dotenv()
 
 class Config:

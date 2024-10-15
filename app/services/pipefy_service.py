@@ -11,13 +11,13 @@ from io import BytesIO
 import time
 import math
 
-def wait_for_report(export_id, max_wait_time=300, poll_interval=5):
+def wait_for_report(export_id, max_wait_time=900, poll_interval=5):
     """
     Aguarda até que o relatório esteja pronto (estado: done ou finished).
 
     :param export_id: O ID do relatório exportado.
     :param max_wait_time: Tempo máximo para esperar (em segundos).
-    :param poll_interval: Intervalo de tempo entre as checagens (em segundos).
+    :param poll_interval: Intervalo de tempo entre os checks (em segundos).
     :return: O status final do relatório, ou erro se o tempo máximo for atingido.
     """
     start_time = time.time()
@@ -48,7 +48,7 @@ def wait_for_report(export_id, max_wait_time=300, poll_interval=5):
 
 def export_report(pipe_id, report_id):
     """
-    Exporta um relatório via API do Pipefy.
+    Exporta um relatório EXCEL via API do Pipefy.
     """
     try:
         headers = {
@@ -127,6 +127,9 @@ def get_report_status(export_id):
         return {"error": "Failed to retrieve report status", "status_code": response.status_code}
 
 def download_and_process_report(export_id):
+    """
+    Se o status chegar como concluido, sera feito o download do arquivo e processará os dados.
+    """
     report_status = get_report_status(export_id)
     if "error" in report_status:
         return {"error": report_status["error"]}
@@ -142,6 +145,7 @@ def download_and_process_report(export_id):
     if response.status_code != 200:
         return {"error": "Failed to download the report file", "status_code": response.status_code}
 
+    # leitura do arquivo para iniciar o processamento dos dados
     try:
         df = pd.read_excel(BytesIO(response.content))
     except Exception as e:
@@ -153,6 +157,9 @@ def download_and_process_report(export_id):
     return df.to_dict(orient='records')
 
 def filter_chamados(calls_data, start_date, end_date):
+    """
+    Filtra e separa chamados no periodo / Abertos X Concluidos.
+    """
     start_date = pd.to_datetime(start_date)
     end_date = pd.to_datetime(end_date)
 
@@ -172,6 +179,9 @@ def filter_chamados(calls_data, start_date, end_date):
     return chamados_abertos, chamados_concluidos
 
 def get_all_cards():
+    """
+    Consulta os cards na totalidade (SEM LIMITE DE REQUESTS MAS SEM PRECISÃO).
+    """
     headers = {
         "Authorization": f"Bearer {current_app.config['PIPEFY_API_KEY']}",
         "Content-Type": "application/json"
@@ -258,23 +268,10 @@ def get_all_cards():
                     return {"error": "Erro ao processar resposta JSON"}
     return all_cards
 
-
-
-def contar_ocorrencias_tipo_solicitacao(cards):
-    """
-    Conta as ocorrências de cada valor no campo 'Escolha o tipo de solicitação'.
-    """
-    ocorrencias = defaultdict(int)
-
-    for card in cards:
-        tipo_solicitacao = next((field['value'] for field in card['fields'] if field['name'] == 'Escolha o tipo de solicitação'), None)
-        if tipo_solicitacao:
-            ocorrencias[tipo_solicitacao] += 1
-
-    return ocorrencias
-
-
 def contar_chamados_abertos(pipe_data, start_date, end_date):
+    """
+    Processa quantidade total de chamados abertos.
+    """
     total_abertos = 0
     chamados_por_data = defaultdict(lambda: {'abertos': 0})
 
@@ -290,8 +287,10 @@ def contar_chamados_abertos(pipe_data, start_date, end_date):
 
     return total_abertos, chamados_por_data
 
-
 def contar_chamados_concluidos(pipe_data, start_date, end_date):
+    """
+    Processa quantidade total de chamados concluidos.
+    """
     total_concluidos = 0
     chamados_por_data = defaultdict(lambda: {'concluidos': 0})
 
@@ -315,6 +314,9 @@ def contar_chamados_concluidos(pipe_data, start_date, end_date):
     return total_concluidos, chamados_por_data
 
 def processar_dados_pipe(pipe_data, start_date, end_date):
+    """
+    Processa dados (AbertosXConcluidos) e gera uma variavel para trabalhar com estes dados.
+    """
     total_abertos, chamados_abertos_por_data = contar_chamados_abertos(pipe_data, start_date, end_date)
     total_concluidos, chamados_concluidos_por_data = contar_chamados_concluidos(pipe_data, start_date, end_date)
 

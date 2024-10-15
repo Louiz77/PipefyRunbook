@@ -1,6 +1,5 @@
 import matplotlib
 matplotlib.use('Agg')
-
 from docx import Document
 from docx.shared import Inches
 from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
@@ -28,21 +27,21 @@ def gerar_relatorio_completo(top_5_solicitacoes, data_records, total_abertos, to
     """
     doc = Document()
 
-    mes_ano_atual = start_date.strftime("%B")
-    adicionar_cabecalho_rodape(doc, mes_ano_atual)
+    mes_ano_atual = start_date.strftime("%B") # Info de data para inserir na header/footer do doc
+    adicionar_cabecalho_rodape(doc, mes_ano_atual) # func para add header e footer
 
-    gerar_pagina_inicial(doc, start_date, end_date)
+    gerar_pagina_inicial(doc, start_date, end_date) # func para gerar pagina inicial (logica de datas)
     doc.add_page_break()
 
     doc.add_heading('Relatório Gerencial Mensal', 1)
-    adicionar_sumario(doc)
+    adicionar_sumario(doc) # func para gerar sumario (nao-automatico)
     doc.add_page_break()
 
-    doc.add_heading('Objetivo', level=2)
+    doc.add_heading('Objetivo', level=2) # estatico / only-text
     doc.add_paragraph(
         'Mensalmente, será apresentado o relatório “Run-Book” contendo as informações baseadas na operação dos últimos 30 dias, com as seguintes informações, porém não limitado a:')
 
-    doc.add_paragraph(
+    doc.add_paragraph(# estatico / only-text
         '''
         • Relatório de incidentes ocorrido no período anterior contendo a classificação dos incidentes e SLA atingido
         • Descritivo e tratativa dos incidentes críticos ocorridos no período anterior. 
@@ -54,11 +53,11 @@ def gerar_relatorio_completo(top_5_solicitacoes, data_records, total_abertos, to
         • Relatório sobre inventário do parque e acompanhamento da vida útil.'''
     )
 
-    doc.add_paragraph(
+    doc.add_paragraph( # estatico / only-text
         'Adicionalmente ao Run-Book mensal, a ITfácil poderá fornecer a pedido do cliente'
     )
 
-    doc.add_paragraph(
+    doc.add_paragraph( # estatico / only-text
         '''
         • Relatório check-list de execução de rotina de backup diário 
         • Relatório check-list de execução de replicação do site Disaster Recovery diário 
@@ -67,36 +66,37 @@ def gerar_relatorio_completo(top_5_solicitacoes, data_records, total_abertos, to
         '''
     )
 
-    doc.add_heading('SLA - Solução', level=2)
+    doc.add_heading('SLA - Solução', level=2) # IMG de SLA PADRAO
     doc.add_picture('./app/sla_padrao.jpg', width=Inches(4.0), height=Inches(4.0))
 
 
-    doc.add_heading('Histórico de versões', level=2)
+    doc.add_heading('Histórico de versões', level=2) # Hist de versao com infos inseridas no forms
     gerar_historico_versoes(doc, autorResponsavel, numberVersion)
 
     doc.add_page_break()
-    doc.add_heading('Fatos relevantes', level=2)
+    doc.add_heading('Fatos relevantes', level=2) # func para gerar abertosXconcluidos e texto com as informacoes
     gerar_relatorio_chamados(doc, data_records, start_date, end_date)
     doc.add_page_break()
 
-    doc.add_heading('Quantidade de GMUDs Executadas no Mês', level=2)
+    doc.add_heading('Quantidade de GMUDs Executadas no Mês', level=2) # estatico / only-text
     doc.add_paragraph('Neste mês, o time de TI realizou um total de [NÚMERO] GMUDs (Gestão de Mudanças em TI), alinhadas com as necessidades estratégicas e operacionais da empresa. Cada GMUD foi cuidadosamente planejada e implementada com o objetivo de otimizar a infraestrutura tecnológica, melhorar a performance dos sistemas e garantir a continuidade dos serviços. O monitoramento pós-implementação confirmou a eficácia das mudanças.')
 
-    doc.add_heading('Principais Tipos de Solicitações', level=2)
+    doc.add_heading('Principais Tipos de Solicitações', level=2) # func para o top5 solicitacoes / com grafico
     adicionar_texto_solicitacoes(doc, start_date, end_date, top_5_solicitacoes)
     gerar_grafico_colunas_solicitacoes(doc, top_5_solicitacoes)
     doc.add_page_break()
 
-    doc.add_heading('Gestão de Serviços', level=2)
+    doc.add_heading('Gestão de Serviços', level=2) # estatico / com imagem do pipefy (forms)
     doc.add_paragraph('Foi implantado a Gestão de projetos na Ecom, utilizando a ferramenta do Pipefy, com a criação de vários controles que podem ser gerenciados pela equipe Ecom e Itfácil em conjunto, essa ferramenta trouxe mais transparências nas atividades, registro dos passos e evidências além de criar uma base de conhecimento que pode ser consultada a qualquer momento.')
     if pipefy_image:
         doc.add_picture(os.path.join(current_app.config['UPLOAD_FOLDER'], pipefy_image), width=Inches(4.0))
-    p = doc.add_paragraph('Acesse o quadro Pipefy aqui: ')
+    p = doc.add_paragraph('Acesse o quadro Pipefy aqui: ') # func para add hyperlink
     add_hyperlink(p, 'https://app.pipefy.com/pipes/304582953', 'Quadro - Ecom - Tarefas ITFacil Equipe - Pipefy')
 
+    # grafico pizza / percentual - classificacao de solicitacoes
     gerar_classificacao_incidentes(doc, data_records, start_date, end_date)
 
-    doc.add_page_break()
+    doc.add_page_break() # imagens do grafana (5)
     doc.add_heading('Resumo dos recursos computacionais utilizados contendo % de consumo – capacidade do ambiente computacional.', level=2)
     doc.add_paragraph('Considerando a topologia no ambiente Ecom / Cirion –abaixo, esta em desenvolvimento o  monitoramento com a capacidade de listar os % de consumo dos Host por períodos, promovendo as seguintes informações:')
     if grafana_image_paths:
@@ -105,27 +105,34 @@ def gerar_relatorio_completo(top_5_solicitacoes, data_records, total_abertos, to
     #gerar_relatorio_com_dados_prometheus(doc, prometheus_data)
     #gerar_relatorio_com_dados_grafana(doc, grafana_data)
 
+    # estatico / only-text
     doc.add_heading('Check-list operacional a respeito do funcionamento da infraestrutura e sistemas diário', level=2)
-    p = doc.add_paragraph('Disponível no diretório: ')
+    p = doc.add_paragraph('Disponível no diretório: ') # func para add hyperlink
     add_hyperlink(p, custom_link1, 'Lista de Check List - Diario')
 
+    # estatico / only-text
     doc.add_paragraph('Esta disponível o manual do check-list atualizado, com o processo passo-a-passo e um arquivo zip com todos os check list realizados inclusive com as observações e ocorrências.')
 
+    # estatico / only-text
     doc.add_heading('Backup Cirion, acompanhamento diário', level=2)
     doc.add_paragraph('O backup é realizado junto ao checklist diário.')
 
+    # estatico / only-text
     doc.add_heading('Controle de aplicativos instalados', level=2)
-    p = doc.add_paragraph('Disponível no diretório: ')
+    p = doc.add_paragraph('Disponível no diretório: ') # func para add hyperlink
     add_hyperlink(p, custom_link2, 'Controle de Aplicativos e Sistemas Instalados')
 
+    # estatico / only-text
     doc.add_heading('O Sistema GLPI e o Kaspersky fazem a gestão dos ativos controalndo a parte física e lógica de todos os equipamentos', level=2)
     doc.add_paragraph('A lista completa, bem como o inventário por equipamentos poderá ser acompanhado e gerenciado diretamente no GLPI ou Kaspersky')
-    p = doc.add_paragraph('Relatório completo está disponível em: ')
+    p = doc.add_paragraph('Relatório completo está disponível em: ') # func para add hyperlink
     add_hyperlink(p, custom_link3, 'Inventario de Maquinas - GLPI')
 
+    # func para add gerar grafico de colunas e texto TOTVS
     doc.add_heading('Chamados Referente a TOTVS', level=2)
     gerar_chamados_totvs(doc, data_records, start_date, end_date)
 
+    # gera um arquivo que ficará local na maquina da aplicação
     output_file = os.path.join(os.getcwd(), 'relatorio_runbook.docx')
     doc.save(output_file)
 
@@ -168,6 +175,7 @@ def adicionar_cabecalho_rodape(doc, mes_ano):
 def adicionar_sumario(doc):
     """
     Gera um sumário com alinhamento adequado para o documento.
+    (Nao-Automatico)
     """
     paragraph = doc.add_paragraph()
     run = paragraph.add_run("Sumário")
@@ -239,8 +247,8 @@ def gerar_grafico_colunas_solicitacoes(doc, top_5_solicitacoes):
 
 def adicionar_texto_solicitacoes(doc, start_date, end_date, top_5_solicitacoes):
     """
-        Adiciona um texto explicativo sobre as cinco principais solicitações abertas no período.
-        """
+        Adiciona um texto explicativo sobre as 5 principais solicitações abertas no período.
+    """
     if not top_5_solicitacoes:
         doc.add_paragraph("Nenhuma solicitação foi registrada no período selecionado.")
         return
@@ -325,28 +333,6 @@ def gerar_relatorio_chamados(doc, pipes_data, start_date, end_date):
         img_stream = io.BytesIO(base64.b64decode(grafico_linhas_url))
         doc.add_picture(img_stream, width=Inches(6))
 
-def gerar_graficos_chamados(doc, chamados_por_data):
-    """
-    Gera gráficos de linha e pizza com base nos dados dos chamados.
-    """
-    # Gráfico de linha
-    grafico_linhas_url = gerar_grafico_linhas(chamados_por_data)
-    if grafico_linhas_url:
-        img_stream = io.BytesIO(base64.b64decode(grafico_linhas_url))
-        doc.add_picture(img_stream, width=Inches(6))
-
-    # Gráfico de pizza
-    total_abertos = sum(chamados['abertos'] for chamados in chamados_por_data.values())
-    total_concluidos = sum(chamados['concluidos'] for chamados in chamados_por_data.values())
-    chamados_resumo = {
-        'Chamados Abertos': total_abertos,
-        'Chamados Concluídos': total_concluidos
-    }
-    grafico_pizza_url = gerar_grafico_pizza2(chamados_resumo)
-    if grafico_pizza_url:
-        img_stream = io.BytesIO(base64.b64decode(grafico_pizza_url))
-        doc.add_picture(img_stream, width=Inches(6))
-
 def gerar_chamados_totvs(doc, pipes_data, start_date, end_date):
     """
     Gera a seção 'Chamados da Totvs' com gráfico de colunas.
@@ -419,25 +405,6 @@ def gerar_grafico_linhas(chamados_por_data):
     plt.ylabel('Quantidade de Chamados')
     plt.title('Evolução dos Chamados Abertos e Concluídos')
     plt.legend()
-
-    img = io.BytesIO()
-    plt.savefig(img, format='png')
-    img.seek(0)
-    grafico_url = base64.b64encode(img.getvalue()).decode()
-    plt.close()
-
-    return grafico_url
-
-def gerar_grafico_pizza2(chamados_por_departamento):
-    """
-    Gera um gráfico de pizza para representar a distribuição de chamados por departamento.
-    """
-    labels = chamados_por_departamento.keys()
-    sizes = chamados_por_departamento.values()
-
-    plt.figure(figsize=(6, 6))
-    plt.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=140)
-    plt.axis('equal')
 
     img = io.BytesIO()
     plt.savefig(img, format='png')
