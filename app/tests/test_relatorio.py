@@ -1,6 +1,6 @@
 import pytest
 from flask import Flask
-from app.views.relatorios import bp as relatorios_bp
+from ..views.relatorios import bp as relatorios_bp
 
 @pytest.fixture
 def app():
