@@ -23,7 +23,7 @@ def get_grafana_data(dashboard_uid, start_date, end_date):
             return {"error": f"Request failed with status code {response.status_code}"}
 
         grafana_data = response.json()
-        return grafana_data
+        return grafana_data # resultado dos dados obtidos
 
     except ValueError:
         return {"error": "Invalid JSON response"}

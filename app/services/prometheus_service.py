@@ -3,7 +3,7 @@ from flask import current_app
 from datetime import datetime
 
 def consultar_prometheus(start_time, end_time, step=200):
-    if isinstance(start_time, datetime):
+    if isinstance(start_time, datetime): # Conversao timestamp / date
         start_time = int(start_time.timestamp())
     if isinstance(end_time, datetime):
         end_time = int(end_time.timestamp())
@@ -12,7 +12,7 @@ def consultar_prometheus(start_time, end_time, step=200):
     headers = {
         "Content-Type": "application/json"
     }
-
+    # query para extrair dados necessarios para gerar graficos
     prometheus_queries = {
         "cpu_usage_simple": 'avg(rate(node_cpu_seconds_total{mode="idle"}[5m]))',
         "CPU usage": "100 - (avg(irate(node_cpu_seconds_total{instance=~\"10.30.10.20:9100\",mode=\"idle\"}[5m])) * 100)",
@@ -25,7 +25,7 @@ def consultar_prometheus(start_time, end_time, step=200):
 
     results = {}
 
-    for query_name, expr in prometheus_queries.items():
+    for query_name, expr in prometheus_queries.items(): # Iniciar consultas das querys
         params = {
             'query': expr,
             'start': start_time,
