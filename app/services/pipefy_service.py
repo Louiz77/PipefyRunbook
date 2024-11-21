@@ -1,3 +1,5 @@
+from errno import ECHILD
+
 import requests
 from app.views.status import all_cards
 from flask import current_app
@@ -130,31 +132,37 @@ def download_and_process_report(export_id):
     """
     Se o status chegar como concluido, sera feito o download do arquivo e processará os dados.
     """
-    report_status = get_report_status(export_id)
-    if "error" in report_status:
-        return {"error": report_status["error"]}
-
-    if report_status['state'] not in ['finished', 'done']:
-        return {"error": f"Report not ready, current state: {report_status['state']}"}
-
-    if "fileURL" not in report_status:
-        return {"error": "Missing file URL"}
-
-    file_url = report_status['fileURL']
-    response = requests.get(file_url)
-    if response.status_code != 200:
-        return {"error": "Failed to download the report file", "status_code": response.status_code}
-
-    # leitura do arquivo para iniciar o processamento dos dados
+    print("Iniciou download e processamento do arquivo")
     try:
-        df = pd.read_excel(BytesIO(response.content))
+        report_status = get_report_status(export_id)
+        if "error" in report_status:
+            return {"error": report_status["error"]}
+
+        if report_status['state'] not in ['finished', 'done']:
+            return {"error": f"Report not ready, current state: {report_status['state']}"}
+
+        if "fileURL" not in report_status:
+            return {"error": "Missing file URL"}
+
+        file_url = report_status['fileURL']
+        response = requests.get(file_url)
+        if response.status_code != 200:
+            return {"error": "Failed to download the report file", "status_code": response.status_code}
+
+        # leitura do arquivo para iniciar o processamento dos dados
+        try:
+            df = pd.read_excel(BytesIO(response.content))
+        except Exception as e:
+            return {"error": f"Error reading Excel file: {str(e)}"}
+
+        df['Created at'] = pd.to_datetime(df['Created at'], errors='coerce')
+        df['Finished at'] = pd.to_datetime(df['Finished at'], errors='coerce')
+
+        print("Processamento concluido com exito")
+        return df.to_dict(orient='records')
     except Exception as e:
-        return {"error": f"Error reading Excel file: {str(e)}"}
-
-    df['Created at'] = pd.to_datetime(df['Created at'], errors='coerce')
-    df['Finished at'] = pd.to_datetime(df['Finished at'], errors='coerce')
-
-    return df.to_dict(orient='records')
+        print(e)
+        return {"error": f"Erro no download e processamento do arquivo {str(e)}"}
 
 def filter_chamados(calls_data, start_date, end_date):
     """

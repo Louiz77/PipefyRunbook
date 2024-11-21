@@ -22,11 +22,14 @@ import plotly.graph_objects as go
 import base64
 from flask import current_app
 
-def gerar_relatorio_completo(id_user_uuid, top_5_solicitacoes, data_records, total_abertos, total_concluidos, chamados_por_data, pipefy_image, grafana_image_paths, autorResponsavel, numberVersion, cards_data, all_cards_data, start_date, end_date, custom_link1, custom_link2, custom_link3):
+def gerar_relatorio_completo(id_user_uuid, top_5_solicitacoes, data_records, total_abertos, total_concluidos, chamados_por_data, pipefy_image, grafana_image_paths, autorResponsavel, numberVersion, cards_data, all_cards_data, start_date, end_date, custom_link1, custom_link2, custom_link3, relatorio_dev_path, output_file):
     """
     Gera o relatório completo diretamente pelo código, com base nas informações do Pipefy, Grafana e Prometheus.
     """
     doc = Document()
+
+    # Gera o nome do arquivo com UUID único e o caminho de saída
+    output_file = os.path.join(current_app.config['UPLOAD_FOLDER'], f'relatorio_{id_user_uuid}.docx')
 
     mes_ano_atual = start_date.strftime("%B") # Info de data para inserir na header/footer do doc
     adicionar_cabecalho_rodape(doc, mes_ano_atual) # func para add header e footer
@@ -90,7 +93,7 @@ def gerar_relatorio_completo(id_user_uuid, top_5_solicitacoes, data_records, tot
     doc.add_heading('Gestão de Serviços', level=2) # estatico / com imagem do pipefy (forms)
     doc.add_paragraph('Foi implantado a Gestão de projetos na Ecom, utilizando a ferramenta do Pipefy, com a criação de vários controles que podem ser gerenciados pela equipe Ecom e Itfácil em conjunto, essa ferramenta trouxe mais transparências nas atividades, registro dos passos e evidências além de criar uma base de conhecimento que pode ser consultada a qualquer momento.')
     if pipefy_image:
-        doc.add_picture(os.path.join(current_app.config['UPLOAD_FOLDER'], pipefy_image), width=Inches(4.0))
+        doc.add_picture(pipefy_image, width=Inches(4.0))
     p = doc.add_paragraph('Acesse o quadro Pipefy aqui: ') # func para add hyperlink
     add_hyperlink(p, 'https://app.pipefy.com/pipes/304582953', 'Quadro - Ecom - Tarefas ITFacil Equipe - Pipefy')
     doc.add_page_break()
@@ -135,12 +138,9 @@ def gerar_relatorio_completo(id_user_uuid, top_5_solicitacoes, data_records, tot
     gerar_chamados_totvs(doc, data_records, start_date, end_date)
     doc.add_page_break()
 
-    # gera um arquivo que ficará local na maquina da aplicação
-    output_file = os.path.join(os.getcwd(), 'relatorio_runbook.docx')
     doc.save(output_file)
 
     return output_file
-
 
 def append_relatorio_dev(output_file, relatorio_dev_path, id_user_uuid):
     # Carrega o documento principal
