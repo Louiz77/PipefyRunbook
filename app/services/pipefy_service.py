@@ -12,6 +12,21 @@ from io import StringIO
 from io import BytesIO
 import time
 import math
+import os
+
+
+def registrar_log(mensagem, arquivo_log="application.log"):
+    """
+    Registra uma mensagem em um arquivo de log.
+
+    :param mensagem: Mensagem a ser registrada no log.
+    :param arquivo_log: Caminho para o arquivo de log.
+    """
+    caminho_log = os.path.join(os.getcwd(), arquivo_log)
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    with open(caminho_log, "a", encoding="utf-8") as log_file:
+        log_file.write(f"[{timestamp}] {mensagem}\n")
 
 def wait_for_report(export_id, max_wait_time=900, poll_interval=5):
     """
@@ -253,11 +268,13 @@ def get_all_cards():
                 )
 
                 if response.status_code != 200:
+                    registrar_log(f"Erro ao consultar cards: Status Code {response.status_code}")
                     return {"error": f"Request failed with status code {response.status_code}"}
 
                 try:
                     response_data = response.json()
                     if 'errors' in response_data:
+                        registrar_log(f"Erro na resposta da API: {response_data['errors']}")
                         return {"error": response_data['errors']}
 
                     pipe_data = response_data["data"]["pipe"]
@@ -272,8 +289,11 @@ def get_all_cards():
                             after = page_info["endCursor"]
                             break
 
-                except ValueError:
+                except ValueError as e:
+                    registrar_log(f"Erro ao processar resposta JSON: {str(e)}")
                     return {"error": "Erro ao processar resposta JSON"}
+
+    registrar_log(f"Total de cards obtidos: {len(all_cards)}")
     return all_cards
 
 def contar_chamados_abertos(pipe_data, start_date, end_date):
@@ -287,17 +307,24 @@ def contar_chamados_abertos(pipe_data, start_date, end_date):
     end_date = datetime.combine(end_date, datetime.max.time())
 
     for card in pipe_data:
-        card_created_date = datetime.strptime(card['created_at'], "%Y-%m-%dT%H:%M:%SZ")
-
-        if start_date <= card_created_date <= end_date:
-            total_abertos += 1
-            chamados_por_data[card_created_date.date()]['abertos'] += 1
+        if isinstance(card, dict):  # Garante que o card é um dicionário
+            try:
+                card_created_date = datetime.strptime(card['created_at'], "%Y-%m-%dT%H:%M:%SZ")
+                if start_date <= card_created_date <= end_date:
+                    total_abertos += 1
+                    chamados_por_data[card_created_date.date()]['abertos'] += 1
+            except KeyError as e:
+                print(f"Erro de chave no card: {e}, Card: {card}")
+            except Exception as e:
+                print(f"Erro inesperado ao processar card: {e}, Card: {card}")
+        else:
+            print(f"Card inválido (não é dicionário): {card}")
 
     return total_abertos, chamados_por_data
 
 def contar_chamados_concluidos(pipe_data, start_date, end_date):
     """
-    Processa quantidade total de chamados concluidos.
+    Processa quantidade total de chamados concluídos.
     """
     total_concluidos = 0
     chamados_por_data = defaultdict(lambda: {'concluidos': 0})
@@ -306,6 +333,10 @@ def contar_chamados_concluidos(pipe_data, start_date, end_date):
     end_date = datetime.combine(end_date, datetime.max.time())
 
     for card in pipe_data:
+        if not isinstance(card, dict):
+            registrar_log(f"Card inválido detectado (não é dicionário): {card}")
+            continue
+
         phases_history = card.get('phases_history', [])
 
         if card.get('current_phase', {}).get('name') == 'Concluído':
@@ -320,6 +351,7 @@ def contar_chamados_concluidos(pipe_data, start_date, end_date):
                         chamados_por_data[card_conclusion_date.date()]['concluidos'] += 1
 
     return total_concluidos, chamados_por_data
+
 
 def processar_dados_pipe(pipe_data, start_date, end_date):
     """

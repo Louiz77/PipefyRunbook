@@ -163,7 +163,7 @@ def gerar_relatorio_thread(app_context, params, output_path):
         relatorio_status[params["id_user_uuid"]] = {
             "status": "pronto",
             "file_path": os.path.abspath(final_output_path),
-            "download_url": (f"http://localhost:8530/relatorios/download/{params["id_user_uuid"]}")
+            "download_url": (f"http://10.5.9.45:8530/relatorios/download/{params["id_user_uuid"]}")
         }
         print("Finalizou GERAR_RELATORIO_THREAD")
         print(relatorio_status)
@@ -181,7 +181,7 @@ def status_relatorio(report_id):
         return jsonify({"status": "não encontrado"}), 404
 
     if status_info["status"] == "pronto":
-        status_info["download_url"] = f"http://localhost:8530/relatorios/download/{report_id}"
+        status_info["download_url"] = f"http://10.5.9.45:8530/relatorios/download/{report_id}"
 
     return jsonify(status_info)
 
