@@ -37,7 +37,7 @@ def test_gerar_relatorio(mock_filtrar_top_solicitacoes, mock_filter_chamados, mo
     # Simula o retorno da função wait_for_report
     mock_wait_for_report.return_value = {'status': 'completed'}
 
-    # Simula o retorno da função download_and_process_report com a chave 'Created at' como objeto datetime
+    # Simula o retorno da função download_and_process_report
     mock_download_and_process_report.return_value = [
         {'Created at': datetime(2024, 10, 1, 12, 0, 0), 'Finished at': datetime(2024, 10, 5, 12, 0, 0), 'title': 'Chamado 1'},
         {'Created at': datetime(2024, 10, 2, 12, 0, 0), 'Finished at': datetime(2024, 10, 6, 12, 0, 0), 'title': 'Chamado 2'}
@@ -69,14 +69,19 @@ def test_gerar_relatorio(mock_filtrar_top_solicitacoes, mock_filter_chamados, mo
         'custom_link3': 'http://example.com/link3'
     })
 
-    # Verificando o status da resposta
+    # Verifica se a rota /relatorios/gerar retorna status 200
     assert response.status_code == 200
 
-    # Verificando o tipo de conteúdo para garantir que seja um arquivo Word
-    assert response.headers['Content-Type'] == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    # Verifica o JSON de retorno
+    response_data = response.get_json()
+    assert response_data['status'] == 'Relatório em processamento'
+    assert 'report_id' in response_data
+    assert 'download_url' in response_data
 
-    # Verificando se o cabeçalho 'Content-Disposition' está presente e contém o nome do arquivo
-    if 'Content-Disposition' in response.headers:
-        assert 'relatorio_runbook.docx' in response.headers['Content-Disposition']
-    else:
-        pytest.fail("O cabeçalho 'Content-Disposition' não foi encontrado na resposta.")
+    # Simula o download do relatório usando a URL gerada
+    download_response = client.get(response_data['download_url'])
+
+    # Verifica se o arquivo Word é retornado corretamente
+    assert download_response.status_code == 200
+    assert download_response.headers['Content-Type'] == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    assert 'relatorio_' in download_response.headers['Content-Disposition']
