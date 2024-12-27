@@ -52,7 +52,7 @@ def test_gerar_relatorio(mock_filtrar_top_solicitacoes, mock_filter_chamados, mo
         {'type': 'Solicitação de Serviço', 'count': 1}
     ]
 
-    # Simulação de um POST para a rota /gerar
+    # Simulação de um POST para a rota /relatorios/gerar
     response = client.post('/relatorios/gerar', data={
         'start_date': '2024-10-01',
         'end_date': '2024-10-31',
@@ -72,8 +72,11 @@ def test_gerar_relatorio(mock_filtrar_top_solicitacoes, mock_filter_chamados, mo
     # Verificando o status da resposta
     assert response.status_code == 200
 
-    # Verificando se o cabeçalho 'Content-Disposition' contém o nome do arquivo correto
-    assert 'relatorio_runbook.docx' in response.headers['Content-Disposition']
-
     # Verificando o tipo de conteúdo para garantir que seja um arquivo Word
     assert response.headers['Content-Type'] == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+
+    # Verificando se o cabeçalho 'Content-Disposition' está presente e contém o nome do arquivo
+    if 'Content-Disposition' in response.headers:
+        assert 'relatorio_runbook.docx' in response.headers['Content-Disposition']
+    else:
+        pytest.fail("O cabeçalho 'Content-Disposition' não foi encontrado na resposta.")
